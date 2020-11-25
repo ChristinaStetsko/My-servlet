@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Первый сервис на Java</title>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+
+    <!--
+    Наши CSS стили (могут быть вынесены в отдельный .css файл и подключены с помощью тега link.
+    Пример: https://www.w3schools.com/css/css_howto.asp
+    -->
+    <style>
+        #create-user-block {
+            width: 700px;
+        }
+
+        #users-block {
+            width: 700px;
+            padding-top: 50px;
+        }
+
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
+
+    <script>
+        console.log('Привет из мира JavaScript-а!!!!');
+
+        function loadUsers() {
+            // Кратко о том что такое ajax: https://www.hostinger.ru/rukovodstva/chto-takoje-ajax/
+            $.ajax({
+                url: "http://localhost:8080/my-servlet/users",
+                data: {},
+                headers: {"Authorization": "very_secured_key"},
+                success: function (users) {
+                    // с помощью JQuery обращаемся к html тегам и редактируем их динамически
+                    const usersBlock = $("#users-block");
+                    usersBlock.empty();
+
+                    if (users.length === 0) {
+                        usersBlock.append('<h1>Пустой список пользователей</h1>');
+                    } else {
+                        usersBlock.append('<h1>Пользователи загруженные с сервера</h1>');
+
+                        // Собираем table блок из пользователей, и потом с помощью JQuery подставляем его в наш блок с пользователями
+                        let tableHtml = '<table>\n' +
+                            '   <tr>' +
+                            '  <th>Идентификатор</th>\n' +
+                            '    <th>Имя пользователя</th>\n' +
+                            '   </tr>';
+                        users.forEach(u => {
+                            tableHtml = tableHtml + `<tr><td>${u.id}</td><td>${u.username}</td></tr>`;
+                        });
+                        usersBlock.append(tableHtml + '</table>');
+                    }
+                }
+            });
+        }
+
+        function saveUser() {
+            // с помощью JQuery достаем значения из html тега input
+            const username = $("#username").val();
+            const password = $("#pwd").val();
+            const newUser = {
+                username: username,
+                password: password
+            };
+
+            $.ajax({
+                url: "http://localhost:8080/my-servlet/users",
+                method: 'POST',
+                contentType: "application/json",
+                data: JSON.stringify(newUser),
+                dataType: "json",
+                headers: {"Authorization": "very_secured_key"},
+                success: function (createdUser) {
+                    console.log(`Созданный пользователь: ${createdUser}`);
+                    $("#username").empty();
+                    $("#pwd").empty();
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+<div id="create-user-block">
+    <label>Имя пользователя: <input type="text" id="username"></label>
+    <label>Пароль: <input type="password" id="pwd"></label>
+    <button onclick="saveUser()">Сохранить</button>
+</div>
+<div id="users-block">
+    <h1>Пустой список пользователей</h1>
+</div>
+<button onclick="loadUsers()">Загрузить список пользователей с сервера</button>
+</body>
+</html>
